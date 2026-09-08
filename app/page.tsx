@@ -7,15 +7,15 @@ import { RsvpForm } from "./components/RsvpForm";
 import { ShareButton } from "./components/ShareButton";
 import { VenueMap } from "./components/VenueMap";
 
-const WEDDING_DATE = "2026-11-14T17:30:00+01:00";
+const WEDDING_DATE = "2026-11-21T12:00:00+01:00";
 
 const weddingStructuredData = {
   "@context": "https://schema.org",
   "@type": "Event",
   name: "Boda de Inma y Pascual",
   description: "Celebración de la boda de Inma y Pascual en Molina Real.",
-  startDate: "2026-11-14T17:30:00+01:00",
-  endDate: "2026-11-15T02:00:00+01:00",
+  startDate: WEDDING_DATE,
+  endDate: "2026-11-22T02:00:00+01:00",
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
   location: {
@@ -68,7 +68,7 @@ export default function Home() {
             <span>Pascual</span>
           </h1>
           <div className="gold-rule" aria-hidden="true" />
-          <p className="hero__date">21 · 11 · 2026</p>
+          <p className="hero__date">21·11·2026</p>
           <p className="hero__place">Molina de Segura · Murcia</p>
           <ShareButton variant="hero" />
         </div>

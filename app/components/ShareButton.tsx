@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const shareTitle = "Inma & Pascual · Nos casamos";
 const shareText =
-  "Inma y Pascual se casan el 14 de noviembre de 2026 en Molina Real. Consulta todos los detalles y confirma tu asistencia:";
+  "Inma y Pascual se casan el 21 de noviembre de 2026 en Molina Real. Consulta todos los detalles y confirma tu asistencia:";
 
 export function ShareButton({ variant = "footer" }: { variant?: "hero" | "footer" }) {
   const [open, setOpen] = useState(false);

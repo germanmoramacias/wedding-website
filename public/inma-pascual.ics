@@ -5,9 +5,10 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 UID:boda-inma-pascual-20261114@inmaypascual
-DTSTAMP:20260803T120000Z
-DTSTART;TZID=Europe/Madrid:20261114T173000
-DTEND;TZID=Europe/Madrid:20261115T020000
+DTSTAMP:20260908T130000Z
+SEQUENCE:1
+DTSTART;TZID=Europe/Madrid:20261121T120000
+DTEND;TZID=Europe/Madrid:20261122T020000
 SUMMARY:Boda de Inma y Pascual
 LOCATION:Molina Real Celebraciones\, Calle Amsterdam 2\, 30509 Molina de Segura\, Murcia
 DESCRIPTION:Celebramos la boda de Inma y Pascual. ¡Te esperamos!

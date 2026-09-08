@@ -28,7 +28,10 @@ test("renderiza la invitación y sus metadatos sociales", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Inma &amp; Pascual · 14 de noviembre de 2026<\/title>/i);
+  assert.match(html, /<title>Inma &amp; Pascual · 21 de noviembre de 2026<\/title>/i);
+  assert.match(html, /21·11·2026/);
+  assert.match(html, /2026-11-21T12:00:00\+01:00/);
+  assert.match(html, /2026-11-22T02:00:00\+01:00/);
   assert.match(html, /Inma/);
   assert.match(html, /Pascual/);
   assert.match(html, /Molina Real/);

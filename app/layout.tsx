@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import { ServiceWorkerRegister } from "./components/ServiceWorkerRegister";
 import "./globals.css";
 
-const title = "Inma & Pascual · 14 de noviembre de 2026";
+const title = "Inma & Pascual · 21 de noviembre de 2026";
 const description =
-  "Nos casamos. Acompáñanos el 14 de noviembre de 2026 en Molina Real, Molina de Segura.";
+  "Nos casamos. Acompáñanos el 21 de noviembre de 2026 en Molina Real, Molina de Segura.";
 
 const baseMetadata: Metadata = {
   title,
@@ -15,7 +15,7 @@ const baseMetadata: Metadata = {
   keywords: [
     "Inma y Pascual",
     "boda",
-    "14 de noviembre de 2026",
+    "21 de noviembre de 2026",
     "Molina Real",
     "Molina de Segura",
   ],
@@ -27,14 +27,14 @@ const baseMetadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_ES",
-    title: "Inma & Pascual · 14 de noviembre de 2026",
+    title,
     description:
       "Nos casamos en Molina Real. Consulta el horario, cómo llegar y confirma tu asistencia.",
     siteName: "Boda de Inma y Pascual",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Inma & Pascual · 14 de noviembre de 2026",
+    title,
     description: "Nos casamos en Molina Real. Consulta todos los detalles de la celebración.",
   },
   appleWebApp: {
