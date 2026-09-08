@@ -1,11 +1,20 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { SongRecommendations } from "./SongRecommendations";
+import { formatSongRecommendations, type Song } from "@/lib/songs";
 
 const RSVP_EMAIL = "inmaypascual.boda@gmail.com";
 
-type MainCourse = "Carne" | "Pescado";
-type Guest = { id: number; name: string; mainCourse: MainCourse };
+type MainCourse = "Carne" | "Pescado" | "Vegano";
+type Guest = {
+  id: number;
+  name: string;
+  mainCourse: MainCourse;
+  specialNeeds: string;
+};
+
+const COURSES = ["Carne", "Pescado", "Vegano"] as const;
 
 function CourseSelector({
   value,
@@ -20,7 +29,7 @@ function CourseSelector({
     <fieldset className="course-selector">
       <legend>{label}</legend>
       <div className="choice-row choice-row--compact">
-        {(["Carne", "Pescado"] as const).map((course) => (
+        {COURSES.map((course) => (
           <button
             className={value === course ? "choice choice--active" : "choice"}
             type="button"
@@ -42,10 +51,14 @@ export function RsvpForm() {
   const [mainCourse, setMainCourse] = useState<MainCourse>("Carne");
   const [guests, setGuests] = useState<Guest[]>([]);
   const [status, setStatus] = useState("");
+  const [songs, setSongs] = useState<Song[]>([]);
 
   const addGuest = () => {
     const id = nextGuestId.current++;
-    setGuests((current) => [...current, { id, name: "", mainCourse: "Carne" }]);
+    setGuests((current) => [
+      ...current,
+      { id, name: "", mainCourse: "Carne", specialNeeds: "" },
+    ]);
   };
 
   const updateGuest = (id: number, update: Partial<Omit<Guest, "id">>) => {
@@ -66,12 +79,12 @@ export function RsvpForm() {
     const attendeeDetails = attending
       ? [
           `Plato principal de ${name}: ${mainCourse}`,
+          `Alergias, intolerancias u otras necesidades especiales de ${name}: ${String(data.get("specialNeeds") || "").trim() || "Ninguna"}`,
           `Acompañantes: ${guests.length}`,
-          ...guests.map(
-            (guest, index) =>
-              `${index + 1}. ${guest.name.trim()} — Plato principal: ${guest.mainCourse}`,
-          ),
-          `Alergias o intolerancias del grupo: ${data.get("allergies") || "Ninguna"}`,
+          ...guests.flatMap((guest, index) => [
+            `${index + 1}. ${guest.name.trim()} — Plato principal: ${guest.mainCourse}`,
+            `   Alergias, intolerancias u otras necesidades especiales: ${guest.specialNeeds.trim() || "Ninguna"}`,
+          ]),
         ]
       : [];
 
@@ -80,6 +93,8 @@ export function RsvpForm() {
       `Correo: ${email}`,
       `Asistencia: ${attending ? "Sí, allí estaré" : "No podré ir"}`,
       ...attendeeDetails,
+      "",
+      ...formatSongRecommendations(songs),
       "",
       `Mensaje: ${data.get("message") || "-"}`,
     ].join("\n");
@@ -136,7 +151,7 @@ export function RsvpForm() {
           <section className="guest-section" aria-labelledby="guest-title">
             <div className="guest-section__heading">
               <div>
-                <h3 id="guest-title">Acompañantes</h3>
+                <h3 id="guest-title" className="form-section-title">Acompañantes</h3>
                 <p>Añade a cada persona y elige su plato principal.</p>
               </div>
               <button className="add-guest-button" type="button" onClick={addGuest}>
@@ -176,6 +191,17 @@ export function RsvpForm() {
                       value={guest.mainCourse}
                       onChange={(course) => updateGuest(guest.id, { mainCourse: course })}
                     />
+                    <label>
+                      <span>Alergias, intolerancias u otras necesidades especiales</span>
+                      <input
+                        type="text"
+                        value={guest.specialNeeds}
+                        maxLength={300}
+                        onChange={(event) =>
+                          updateGuest(guest.id, { specialNeeds: event.target.value })
+                        }
+                      />
+                    </label>
                   </div>
                 ))}
               </div>
@@ -183,11 +209,13 @@ export function RsvpForm() {
           </section>
 
           <label>
-            <span>Alergias o intolerancias del grupo</span>
-            <input name="allergies" type="text" maxLength={300} />
+            <span>Alergias, intolerancias u otras necesidades especiales</span>
+            <input name="specialNeeds" type="text" maxLength={300} />
           </label>
         </div>
       )}
+
+      <SongRecommendations songs={songs} onChange={setSongs} />
 
       <label>
         <span>Un mensaje para los novios</span>

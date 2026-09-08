@@ -1,9 +1,11 @@
 import { Countdown } from "./components/Countdown";
+import { CopyIban } from "./components/CopyIban";
 import { InstallButton } from "./components/InstallButton";
 import { MapLink } from "./components/MapLink";
 import { Reveal } from "./components/Reveal";
 import { RsvpForm } from "./components/RsvpForm";
 import { ShareButton } from "./components/ShareButton";
+import { VenueMap } from "./components/VenueMap";
 
 const WEDDING_DATE = "2026-11-14T17:30:00+01:00";
 
@@ -29,29 +31,6 @@ const weddingStructuredData = {
     },
   },
 };
-
-const agenda = [
-  {
-    time: "17:30",
-    title: "Ceremonia",
-    text: "En el olivar de la finca. Te esperamos un poquito antes para empezar puntuales.",
-  },
-  {
-    time: "18:30",
-    title: "Cóctel",
-    text: "Brindis, aperitivos y ese primer abrazo después del sí quiero.",
-  },
-  {
-    time: "20:30",
-    title: "Banquete",
-    text: "Cena bajo la pérgola del patio principal.",
-  },
-  {
-    time: "23:30",
-    title: "Baile",
-    text: "Música y barra libre hasta que el cuerpo aguante.",
-  },
-];
 
 export default function Home() {
   return (
@@ -82,14 +61,14 @@ export default function Home() {
         </header>
 
         <div className="hero__content" id="inicio">
-          <p className="eyebrow hero__eyebrow">Nos casamos</p>
+          <p className="eyebrow hero__eyebrow">Bienvenidos a nuestra boda</p>
           <h1 id="wedding-title">
             <span>Inma</span>
             <i>&amp;</i>
             <span>Pascual</span>
           </h1>
           <div className="gold-rule" aria-hidden="true" />
-          <p className="hero__date">14 · 11 · 2026</p>
+          <p className="hero__date">21 · 11 · 2026</p>
           <p className="hero__place">Molina de Segura · Murcia</p>
           <ShareButton variant="hero" />
         </div>
@@ -101,15 +80,35 @@ export default function Home() {
       </section>
 
       <section className="section welcome" id="bienvenida">
-        <Reveal className="section__inner section__inner--narrow">
-          <p className="eyebrow">Una historia, un día</p>
+        <Reveal className="section__inner welcome__intro">
+          <p className="eyebrow">¡Nos casamos!</p>
           <blockquote>
-            «Después de tantos caminos compartidos, elegimos el mismo para siempre.»
+            «El verdadero significado de nuestro viaje no reside en el destino, sino en compartir cada paso del camino que decidimos empezar juntos.»
           </blockquote>
-          <p className="body-copy">
-            Nos hace muchísima ilusión celebrarlo contigo. Hemos preparado este rincón para que
-            tengas a mano todos los detalles y puedas acompañarnos en un día inolvidable.
-          </p>
+        </Reveal>
+        <Reveal className="section__inner welcome__layout">
+          <div className="welcome__photo">
+            <img
+              src="/inma-pascual.jpg"
+              alt="Inma y Pascual mirándose frente al mar"
+              width={1366}
+              height={768}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div className="welcome__text">
+            <p className="body-copy">
+              Dicen que la felicidad solo es real cuando se comparte.
+            </p>
+            <p className="body-copy">
+              Por eso, nos hace mucha ilusión celebrarlo con la gente que da sentido a nuestra historia.
+            </p>
+            <p className="body-copy">
+              Preparad las ganas de bailar, porque os esperamos para vivir una jornada llena de alegría, buena música y recuerdos compartidos.
+            </p>
+            <p className="welcome__closing">¡No podéis faltar!</p>
+          </div>
         </Reveal>
 
         <Reveal className="countdown-wrap" delay={120}>
@@ -121,22 +120,22 @@ export default function Home() {
       <section className="section agenda" id="el-dia">
         <Reveal className="section__heading">
           <p className="eyebrow">El día</p>
-          <h2>Sábado, 14 de noviembre</h2>
-          <p>Cuatro momentos y muchas ganas de compartirlos contigo.</p>
+          <h2>Sábado, 21 de noviembre</h2>
         </Reveal>
 
-        <ol className="timeline">
-          {agenda.map((item, index) => (
-            <Reveal as="li" className="timeline__item" delay={index * 90} key={item.time}>
-              <span className="timeline__number">0{index + 1}</span>
-              <time>{item.time}</time>
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </div>
-            </Reveal>
-          ))}
-        </ol>
+
+        <Reveal className="section__inner ceremony-copy">
+          <p>
+            La ceremonia civil se celebrará a las <strong>12:00</strong> en los jardines del <strong>Restaurante Molina Real</strong>, donde posteriormente tendrá lugar el banquete y la posterior celebración.
+          </p>
+          <p>
+            Queremos que este día sea una oportunidad para que <strong>desconectéis y disfrutéis al máximo</strong>, y aunque adoramos a los más pequeños, en esta ocasión hemos optado por celebrar nuestro gran día en <strong>compañía exclusiva de invitados adultos</strong>.
+          </p>
+          <p>
+            <strong>Vuestra presencia es el mejor regalo</strong> para dar inicio a este nuevo capítulo de nuestra vida. Si además queréis ayudarnos a impulsar nuestros próximos proyectos en común, vuestro granito de arena será más que bienvenido.
+          </p>
+          <CopyIban />
+        </Reveal>
 
         <Reveal className="calendar-row">
           <a className="button button--outline" href="/inma-pascual.ics" download>
@@ -147,7 +146,7 @@ export default function Home() {
 
       <section className="venue" id="lugar">
         <div className="venue__photo" aria-hidden="true">
-          <img src="/hero.jpg" alt="" loading="lazy" />
+          <img src="/molinareal.jpg" alt="" loading="lazy" />
         </div>
         <Reveal className="venue__content">
           <p className="eyebrow eyebrow--light">Ceremonia y celebración</p>
@@ -172,12 +171,7 @@ export default function Home() {
 
       <section className="section map-section" id="mapa">
         <Reveal className="map-card">
-          <iframe
-            title="Mapa de Molina Real Celebraciones"
-            src="https://www.google.com/maps?q=Molina%20Real%20Celebraciones%2C%20Calle%20Amsterdam%202%2C%2030509%20Molina%20de%20Segura%2C%20Murcia&output=embed"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+          <VenueMap />
           <div className="map-card__caption">
             <div>
               <p className="eyebrow">Cómo llegar</p>
@@ -193,7 +187,7 @@ export default function Home() {
           <p className="eyebrow">Confirmación</p>
           <h2>¿Nos acompañas?</h2>
           <p>
-            Confírmanos tu asistencia y tus preferencias antes del 30 de septiembre de 2026.
+            Confírmanos tu asistencia y tus preferencias antes del <b>1 de noviembre de 2026.</b>
           </p>
         </Reveal>
         <Reveal className="rsvp__form-wrap" delay={100}>

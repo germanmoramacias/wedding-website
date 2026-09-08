@@ -1,12 +1,12 @@
-const CACHE_NAME = "inma-pascual-v2";
+const CACHE_NAME = "inma-pascual-v3";
 const APP_SHELL = [
-  "/",
   "/hero.jpg",
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png"
 ];
+const CACHEABLE_PATHS = new Set(APP_SHELL);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -26,16 +26,16 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
-          return response;
-        })
-        .catch(() => caches.match("/")),
-    );
+  const url = new URL(request.url);
+
+  // Never cache HTML or Next.js build artifacts. Mixing files from different
+  // builds causes React hydration mismatches after edits and deployments.
+  if (
+    request.mode === "navigate" ||
+    url.pathname.startsWith("/_next/") ||
+    url.pathname === "/sw.js" ||
+    !CACHEABLE_PATHS.has(url.pathname)
+  ) {
     return;
   }
 
