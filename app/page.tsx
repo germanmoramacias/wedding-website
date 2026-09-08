@@ -23,7 +23,7 @@ const weddingStructuredData = {
     name: "Molina Real Celebraciones",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Calle Ámsterdam, 2 · Urbanización Los Conejos",
+      streetAddress: "C. Amsterdam, 2",
       postalCode: "30509",
       addressLocality: "Molina de Segura",
       addressRegion: "Murcia",
@@ -152,16 +152,13 @@ export default function Home() {
           <p className="eyebrow eyebrow--light">Ceremonia y celebración</p>
           <h2>Molina Real</h2>
           <address>
-            Urbanización Los Conejos · C/ Ámsterdam, 2
-            <br />
-            30509 Molina de Segura (Murcia)
+            C. Amsterdam, 2, 30509 Molina de Segura, Murcia
           </address>
           <p>
             Todo sucede en el mismo lugar. La finca dispone de aparcamiento gratuito para todos
             los invitados.
           </p>
           <div className="venue__actions">
-            <MapLink />
             <a className="text-link text-link--light" href="#mapa">
               Ver el mapa
             </a>
@@ -177,7 +174,7 @@ export default function Home() {
               <p className="eyebrow">Cómo llegar</p>
               <strong>Molina Real · Molina de Segura</strong>
             </div>
-            <MapLink compact />
+            <MapLink />
           </div>
         </Reveal>
       </section>
