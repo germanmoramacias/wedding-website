@@ -4,7 +4,7 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const IBAN = "ES2100730100540215177121";
-const IBAN_GROUPS = IBAN.match(/.{1,4}/g) ?? [];
+const FORMATTED_IBAN = (IBAN.match(/.{1,4}/g) ?? []).join(" ");
 
 export function CopyIban() {
   const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
@@ -35,14 +35,10 @@ export function CopyIban() {
   return (
     <div className="gift-account">
       <div className="gift-account__row">
-        <div className="gift-account__details">
-          <span className="gift-account__label">IBAN</span>
-          <span className="gift-account__number" ref={numberRef}>
-            {IBAN_GROUPS.map((group, index) => (
-              <span key={index}>{group}{index < IBAN_GROUPS.length - 1 ? " " : ""}</span>
-            ))}
-          </span>
-        </div>
+        <span className="gift-account__label">IBAN</span>
+        <span className="gift-account__number" ref={numberRef}>
+          {FORMATTED_IBAN}
+        </span>
         <button
           className="gift-account__copy"
           type="button"
