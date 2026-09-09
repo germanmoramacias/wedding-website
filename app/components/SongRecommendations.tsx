@@ -75,7 +75,6 @@ export function SongRecommendations({ songs, onChange }: Props) {
       <label htmlFor={`${id}-search`} className="song-picker__label">Canción o artista</label>
       <div className="song-picker__search">
         <div className="song-picker__search-field">
-          <Search aria-hidden="true" />
           <input
             id={`${id}-search`}
             ref={inputRef}
@@ -94,11 +93,30 @@ export function SongRecommendations({ songs, onChange }: Props) {
               }
             }}
           />
+          {query.length > 0 && (
+            <button
+              type="button"
+              className="song-picker__clear-button"
+              onClick={() => {
+                changeQuery("");
+                inputRef.current?.focus({ preventScroll: true });
+              }}
+              aria-label="Borrar búsqueda"
+            >
+              <X aria-hidden="true" />
+            </button>
+          )}
+          <button
+            type="button"
+            className="song-picker__search-button"
+            onClick={search}
+            disabled={query.trim().length < 2 || state === "loading"}
+            aria-label={state === "loading" ? "Buscando canciones" : "Buscar canciones"}
+            aria-busy={state === "loading"}
+          >
+            <Search aria-hidden="true" />
+          </button>
         </div>
-        <button type="button" className="song-picker__search-button" onClick={search}
-          disabled={query.trim().length < 2 || state === "loading"}>
-          {state === "loading" ? "Buscando…" : "Buscar"}
-        </button>
       </div>
       <span id={`${id}-help`} className="sr-only">Escribe al menos 2 caracteres para buscar.</span>
 
