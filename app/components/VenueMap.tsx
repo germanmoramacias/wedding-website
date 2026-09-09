@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/map";
 import { MapPin } from "lucide-react";
 import { useEffect } from "react";
+import { MapLink } from "./MapLink";
 
 const VENUE_CENTER: [number, number] = [-1.19156, 38.088364];
 const IVORY_DEEP = "#eee7da";
@@ -71,10 +72,10 @@ export function VenueMap() {
           anchor="bottom"
         >
           <MarkerContent>
-            <span className="venue-map__marker" role="img" aria-label="Molina Real">
+            <MapLink className="venue-map__marker" aria-label="Abrir Molina Real en mapas">
               <MapPin aria-hidden="true" />
-            </span>
-            <MarkerLabel className="venue-map__marker-label">Molina Real</MarkerLabel>
+              <MarkerLabel className="venue-map__marker-label">Molina Real</MarkerLabel>
+            </MapLink>
           </MarkerContent>
         </MapMarker>
         <MapControls position="top-right" />

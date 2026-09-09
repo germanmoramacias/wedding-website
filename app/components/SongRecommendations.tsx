@@ -81,6 +81,7 @@ export function SongRecommendations({ songs, onChange }: Props) {
             ref={inputRef}
             type="search"
             value={query}
+            placeholder="Ej. Vivir mi vida · Marc Anthony"
             maxLength={100}
             autoComplete="off"
             aria-describedby={`${id}-help`}

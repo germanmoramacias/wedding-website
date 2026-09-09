@@ -1,17 +1,23 @@
-const address = "C. Amsterdam, 2, 30509 Molina de Segura, Murcia";
-const encodedAddress = encodeURIComponent(address);
-const href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+import type { ReactNode } from "react";
 
-export function MapLink() {
+const href = "https://maps.app.goo.gl/Cpi3zcV8CW55NtAt7";
+
+type Props = {
+  children?: ReactNode;
+  className?: string;
+  "aria-label"?: string;
+};
+
+export function MapLink({ children, className = "button button--small", "aria-label": ariaLabel }: Props = {}) {
   return (
     <a
-      className="button button--small"
+      className={className}
       href={href}
       target="_blank"
       rel="noreferrer"
+      aria-label={ariaLabel}
     >
-      Abrir en mapas
-      <span aria-hidden="true">↗</span>
+      {children ?? <>Abrir en mapas <span aria-hidden="true">↗</span></>}
     </a>
   );
 }

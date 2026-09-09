@@ -110,11 +110,26 @@ export function RsvpForm() {
       <div className="form-grid">
         <label>
           <span>Nombre y apellidos</span>
-          <input name="name" type="text" autoComplete="name" minLength={2} maxLength={80} required />
+          <input
+            name="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Ej. María García López"
+            minLength={2}
+            maxLength={80}
+            required
+          />
         </label>
         <label>
           <span>Correo electrónico</span>
-          <input name="email" type="email" autoComplete="email" maxLength={120} required />
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="maria@correo.com"
+            maxLength={120}
+            required
+          />
         </label>
       </div>
 
@@ -148,6 +163,16 @@ export function RsvpForm() {
             onChange={setMainCourse}
           />
 
+          <label>
+            <span>Alergias, intolerancias u otras necesidades especiales</span>
+            <input
+              name="specialNeeds"
+              type="text"
+              placeholder="Ej. intolerancia a la lactosa"
+              maxLength={300}
+            />
+          </label>
+
           <section className="guest-section" aria-labelledby="guest-title">
             <div className="guest-section__heading">
               <div>
@@ -180,6 +205,7 @@ export function RsvpForm() {
                       <input
                         type="text"
                         value={guest.name}
+                        placeholder="Ej. Álex García López"
                         minLength={2}
                         maxLength={80}
                         required
@@ -196,6 +222,7 @@ export function RsvpForm() {
                       <input
                         type="text"
                         value={guest.specialNeeds}
+                        placeholder="Ej. menú sin gluten"
                         maxLength={300}
                         onChange={(event) =>
                           updateGuest(guest.id, { specialNeeds: event.target.value })
@@ -208,10 +235,6 @@ export function RsvpForm() {
             )}
           </section>
 
-          <label>
-            <span>Alergias, intolerancias u otras necesidades especiales</span>
-            <input name="specialNeeds" type="text" maxLength={300} />
-          </label>
         </div>
       )}
 
@@ -219,7 +242,12 @@ export function RsvpForm() {
 
       <label>
         <span>Un mensaje para los novios</span>
-        <textarea name="message" rows={3} maxLength={600} />
+        <textarea
+          name="message"
+          rows={3}
+          placeholder="Escribe aquí tu mensaje…"
+          maxLength={600}
+        />
       </label>
 
       <div className="form-submit">

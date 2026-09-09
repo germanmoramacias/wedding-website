@@ -378,7 +378,7 @@ section[id] {
   height: 100%;
   object-fit: cover;
   object-position: 55% center;
-  filter: saturate(0.86) sepia(0.12) contrast(0.97);
+  filter: sepia(1) saturate(0.7) contrast(0.97);
 }
 
 @media (max-width: 700px) {
@@ -799,6 +799,16 @@ section[id] {
   stroke-width: 1.7;
 }
 
+.venue-map__marker:hover {
+  color: var(--ink);
+}
+
+.venue-map__marker:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 4px;
+  border-radius: 0.375rem;
+}
+
 .venue-map__marker-label {
   margin-bottom: 0.35rem;
   border: 1px solid rgba(48, 72, 59, 0.18);
@@ -1001,6 +1011,12 @@ section[id] {
   caret-color: var(--olive);
   padding: 0.65rem 0;
   transition: border-color 180ms ease;
+}
+
+.rsvp-form input::placeholder,
+.rsvp-form textarea::placeholder {
+  color: var(--taupe);
+  opacity: 1;
 }
 
 .rsvp-form input:focus,

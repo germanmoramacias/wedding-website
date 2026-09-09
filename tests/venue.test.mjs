@@ -19,20 +19,17 @@ test("hay una única acción externa de mapas, junto al mapa integrado", async (
   assert.match(mapSection, /<MapLink/);
 });
 
-test("la dirección coincide en la web, los enlaces y el calendario", async () => {
+test("la dirección coincide en la web y el calendario", async () => {
   const address = "C. Amsterdam, 2, 30509 Molina de Segura, Murcia";
   const page = await read("app/page.tsx");
-  const links = await read("app/components/MapLink.tsx");
   const calendar = await read("public/inma-pascual.ics");
   assert.ok(page.includes(address));
   assert.match(page, /streetAddress: "C\. Amsterdam, 2"/);
-  assert.ok(links.includes(address));
-  assert.match(links, /encodeURIComponent\(address\)/);
   assert.ok(calendar.includes(`LOCATION:${address.replaceAll(",", "\\,")}`));
-  assert.doesNotMatch(page + links + calendar, /Los Conejos/);
+  assert.doesNotMatch(page + calendar, /Los Conejos/);
 });
 
-test("el enlace mantiene la misma dirección en servidor, móvil y tablet", async () => {
+test("el enlace directo del restaurante es idéntico en servidor, móvil y tablet", async () => {
   const source = await read("app/components/MapLink.tsx");
   assert.doesNotMatch(source, /use client|useEffect|useState|maps\.apple\.com/);
   const { outputText } = ts.transpileModule(source, {
@@ -50,10 +47,28 @@ test("el enlace mantiene la misma dirección en servidor, móvil y tablet", asyn
     assert.equal(html, expectedHtml);
 
     const href = html.match(/href="([^"]+)"/)[1].replaceAll("&amp;", "&");
-    const url = new URL(href);
-    assert.equal(url.origin, "https://www.google.com");
-    assert.equal(url.pathname, "/maps/search/");
-    assert.equal(url.searchParams.get("api"), "1");
-    assert.equal(url.searchParams.get("query"), "C. Amsterdam, 2, 30509 Molina de Segura, Murcia");
+    assert.equal(href, "https://maps.app.goo.gl/Cpi3zcV8CW55NtAt7");
+    assert.match(html, /target="_blank"/);
+    assert.match(html, /rel="noreferrer"/);
+
+    const markerHtml = renderToStaticMarkup(exports.MapLink({
+      className: "venue-map__marker",
+      "aria-label": "Abrir Molina Real en mapas",
+      children: "Molina Real",
+    }));
+    assert.match(markerHtml, /^<a /);
+    assert.match(markerHtml, /class="venue-map__marker"/);
+    assert.match(markerHtml, /aria-label="Abrir Molina Real en mapas"/);
+    assert.match(markerHtml, /target="_blank"/);
+    assert.match(markerHtml, /rel="noreferrer"/);
+    assert.equal(markerHtml.match(/href="([^"]+)"/)[1], href);
   }
+});
+
+test("el pin y su etiqueta usan el enlace compartido, con foco visible", async () => {
+  const map = await read("app/components/VenueMap.tsx");
+  const css = await read("app/globals.css");
+  assert.match(map, /import \{ MapLink \} from "\.\/MapLink"/);
+  assert.match(map, /<MapLink className="venue-map__marker"[\s\S]*?<MapPin[\s\S]*?<MarkerLabel[\s\S]*?<\/MapLink>/);
+  assert.match(css, /\.venue-map__marker:focus-visible\s*\{[^}]*outline: 2px/);
 });

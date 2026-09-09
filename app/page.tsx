@@ -126,7 +126,7 @@ export default function Home() {
 
         <Reveal className="section__inner ceremony-copy">
           <p>
-            La ceremonia civil se celebrará a las <strong>12:00</strong> en los jardines del <strong>Restaurante Molina Real</strong>, donde posteriormente tendrá lugar el banquete y la posterior celebración.
+            La ceremonia civil se oficiará a las <strong>12:00</strong> en los jardines del <strong>Restaurante Molina Real</strong>, donde posteriormente tendrá lugar la celebración.
           </p>
           <p>
             Queremos que este día sea una oportunidad para que <strong>desconectéis y disfrutéis al máximo</strong>, y aunque adoramos a los más pequeños, en esta ocasión hemos optado por celebrar nuestro gran día en <strong>compañía exclusiva de invitados adultos</strong>.
