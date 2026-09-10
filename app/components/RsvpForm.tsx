@@ -2,9 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { SongRecommendations } from "./SongRecommendations";
-import { formatSongRecommendations, type Song } from "@/lib/songs";
-
-const RSVP_EMAIL = "inmaypascual.boda@gmail.com";
+import type { Song } from "@/lib/songs";
 
 type MainCourse = "Carne" | "Pescado" | "Vegano";
 type Guest = {
@@ -47,10 +45,12 @@ function CourseSelector({
 
 export function RsvpForm() {
   const nextGuestId = useRef(1);
+  const lastSubmission = useRef<{ fingerprint: string; id: string } | null>(null);
   const [attending, setAttending] = useState(true);
   const [mainCourse, setMainCourse] = useState<MainCourse>("Carne");
   const [guests, setGuests] = useState<Guest[]>([]);
   const [status, setStatus] = useState("");
+  const [submitState, setSubmitState] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [songs, setSongs] = useState<Song[]>([]);
 
   const addGuest = () => {
@@ -71,42 +71,84 @@ export function RsvpForm() {
     setGuests((current) => current.filter((guest) => guest.id !== id));
   };
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name") || "").trim();
     const email = String(data.get("email") || "").trim();
-    const attendeeDetails = attending
-      ? [
-          `Plato principal de ${name}: ${mainCourse}`,
-          `Alergias, intolerancias u otras necesidades especiales de ${name}: ${String(data.get("specialNeeds") || "").trim() || "Ninguna"}`,
-          `Acompañantes: ${guests.length}`,
-          ...guests.flatMap((guest, index) => [
-            `${index + 1}. ${guest.name.trim()} — Plato principal: ${guest.mainCourse}`,
-            `   Alergias, intolerancias u otras necesidades especiales: ${guest.specialNeeds.trim() || "Ninguna"}`,
-          ]),
-        ]
-      : [];
+    const payload = {
+      name,
+      email,
+      attending,
+      mainCourse: attending ? mainCourse : null,
+      specialNeeds: attending ? String(data.get("specialNeeds") || "").trim() : "",
+      guests: attending
+        ? guests.map(({ name: guestName, mainCourse: guestCourse, specialNeeds }) => ({
+            name: guestName.trim(),
+            mainCourse: guestCourse,
+            specialNeeds: specialNeeds.trim(),
+          }))
+        : [],
+      songs,
+      message: String(data.get("message") || "").trim(),
+      website: String(data.get("website") || ""),
+    };
+    const fingerprint = JSON.stringify(payload);
+    if (!lastSubmission.current || lastSubmission.current.fingerprint !== fingerprint) {
+      const id = typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      lastSubmission.current = { fingerprint, id };
+    }
 
-    const body = [
-      `Nombre: ${name}`,
-      `Correo: ${email}`,
-      `Asistencia: ${attending ? "Sí, allí estaré" : "No podré ir"}`,
-      ...attendeeDetails,
-      "",
-      ...formatSongRecommendations(songs),
-      "",
-      `Mensaje: ${data.get("message") || "-"}`,
-    ].join("\n");
+    setSubmitState("sending");
+    setStatus("Enviando tu confirmación…");
 
-    window.location.href = `mailto:${RSVP_EMAIL}?subject=${encodeURIComponent(
-      `Confirmación de asistencia · ${name}`,
-    )}&body=${encodeURIComponent(body)}`;
-    setStatus("Hemos preparado tu confirmación. Solo falta enviarla desde tu correo.");
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 15_000);
+
+    try {
+      const response = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, submissionId: lastSubmission.current.id }),
+        signal: controller.signal,
+      });
+      const result: unknown = await response.json();
+      const errorMessage = result && typeof result === "object" && "error" in result &&
+        typeof result.error === "string"
+        ? result.error
+        : "No hemos podido enviar la confirmación. Inténtalo de nuevo.";
+      if (!response.ok) throw new Error(errorMessage);
+
+      setSubmitState("success");
+      setStatus("Confirmación enviada. Te hemos mandado una copia por correo.");
+    } catch (error) {
+      setSubmitState("error");
+      setStatus(timedOut
+        ? "El envío está tardando demasiado. Comprueba tu conexión y vuelve a intentarlo."
+        : error instanceof Error
+          ? error.message
+          : "No hemos podido enviar la confirmación. Inténtalo de nuevo.");
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   };
 
   return (
-    <form className="rsvp-form" onSubmit={submit}>
+    <form className="rsvp-form" onSubmit={submit} aria-busy={submitState === "sending"}>
+      <input
+        name="website"
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        hidden
+      />
       <div className="form-grid">
         <label>
           <span>Nombre y apellidos</span>
@@ -251,10 +293,18 @@ export function RsvpForm() {
       </label>
 
       <div className="form-submit">
-        <button className="button" type="submit">
-          Enviar confirmación <span aria-hidden="true">→</span>
+        <button className="button" type="submit" disabled={submitState === "sending"}>
+          {submitState === "sending" ? "Enviando…" : "Enviar confirmación"}
+          {submitState !== "sending" && <span aria-hidden="true">→</span>}
         </button>
-        {status && <p role="status">{status}</p>}
+        {status && (
+          <p
+            className={`form-submit__status form-submit__status--${submitState}`}
+            role={submitState === "error" ? "alert" : "status"}
+          >
+            {status}
+          </p>
+        )}
       </div>
     </form>
   );
