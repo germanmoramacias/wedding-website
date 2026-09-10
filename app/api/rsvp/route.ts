@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import {
+  buildConfirmationEmail,
+  buildNotificationEmail,
+  type RsvpEmailGuest,
+  type RsvpEmailSubmission,
+} from "@/lib/rsvp-emails";
+import type { Song } from "@/lib/songs";
 
 export const runtime = "nodejs";
 
@@ -7,29 +14,8 @@ const FROM_ADDRESS = "confirmacion@mail.ceremoniainmaypascual.com";
 const MAX_BODY_SIZE = 32_000;
 const COURSES = new Set(["Carne", "Pescado", "Vegano"]);
 
-type Guest = {
-  name: string;
-  mainCourse: string;
-  specialNeeds: string;
-};
-
-type Song = {
-  id: number;
-  title: string;
-  artist: string;
-  album: string;
-};
-
-type RsvpSubmission = {
+type RsvpSubmission = RsvpEmailSubmission & {
   submissionId: string;
-  name: string;
-  email: string;
-  attending: boolean;
-  mainCourse: string | null;
-  specialNeeds: string;
-  guests: Guest[];
-  songs: Song[];
-  message: string;
 };
 
 function json(data: object, status = 200) {
@@ -53,7 +39,7 @@ function multiline(value: unknown, maxLength: number) {
   return value.trim().replace(/\r\n?/g, "\n");
 }
 
-function parseGuest(value: unknown): Guest | null {
+function parseGuest(value: unknown): RsvpEmailGuest | null {
   if (!isRecord(value)) return null;
   const name = singleLine(value.name, 80);
   const specialNeeds = multiline(value.specialNeeds, 300);
@@ -111,34 +97,10 @@ function parseSubmission(value: unknown): RsvpSubmission | null {
     attending: value.attending,
     mainCourse,
     specialNeeds: value.attending ? specialNeeds : "",
-    guests: value.attending ? guests as Guest[] : [],
+    guests: value.attending ? guests as RsvpEmailGuest[] : [],
     songs: songs as Song[],
     message,
   };
-}
-
-function formatSongs(songs: Song[]) {
-  return songs.length
-    ? ["Canciones recomendadas:", ...songs.map((song, index) =>
-        `${index + 1}. ${song.title} — ${song.artist}${song.album ? ` (${song.album})` : ""}`,
-      )]
-    : ["Canciones recomendadas: Ninguna"];
-}
-
-function formatAttendance(submission: RsvpSubmission) {
-  if (!submission.attending) return ["Asistencia: No podrá asistir", "Número de asistentes: 0"];
-
-  return [
-    "Asistencia: Sí, asistirá",
-    `Número de asistentes: ${submission.guests.length + 1}`,
-    `Plato principal de ${submission.name}: ${submission.mainCourse}`,
-    `Necesidades especiales de ${submission.name}: ${submission.specialNeeds || "Ninguna"}`,
-    ...submission.guests.flatMap((guest, index) => [
-      `Acompañante ${index + 1}: ${guest.name}`,
-      `Plato principal: ${guest.mainCourse}`,
-      `Necesidades especiales: ${guest.specialNeeds || "Ninguna"}`,
-    ]),
-  ];
 }
 
 function isSameOrigin(request: Request) {
@@ -194,32 +156,8 @@ export async function POST(request: Request) {
       return json({ error: "El envío no está disponible ahora. Inténtalo más tarde." }, 503);
     }
 
-    const attendanceLines = formatAttendance(submission);
-    const songLines = formatSongs(submission.songs);
-    const confirmationText = [
-      `Hola ${submission.name},`,
-      "",
-      "Hemos recibido correctamente tu confirmación para nuestra boda.",
-      "",
-      ...attendanceLines,
-      "",
-      ...songLines,
-      "",
-      `Mensaje: ${submission.message || "Sin mensaje"}`,
-      "",
-      "Muchas gracias por responder.",
-      "Inma y Pascual",
-    ].join("\n");
-    const notificationText = [
-      "Nueva confirmación desde la web", "",
-      `Nombre: ${submission.name}`,
-      `Email: ${submission.email}`,
-      ...attendanceLines,
-      "",
-      ...songLines,
-      "",
-      `Mensaje: ${submission.message || "Sin mensaje"}`,
-    ].join("\n");
+    const confirmationEmail = buildConfirmationEmail(submission);
+    const notificationEmail = buildNotificationEmail(submission);
 
     const resend = new Resend(apiKey);
     const { error } = await resend.batch.send(
@@ -229,15 +167,17 @@ export async function POST(request: Request) {
           to: submission.email,
           replyTo: notifyEmail,
           subject: "Confirmación recibida — Inma y Pascual",
-          text: confirmationText,
+          html: confirmationEmail.html,
+          text: confirmationEmail.text,
           tags: [{ name: "category", value: "rsvp-confirmation" }],
         },
         {
           from: `Web de la boda <${FROM_ADDRESS}>`,
           to: notifyEmail,
           replyTo: submission.email,
-          subject: `Nueva confirmación: ${submission.name}`,
-          text: notificationText,
+          subject: `Nueva confirmación: ${submission.name} · ${submission.attending ? "Asiste" : "No asiste"}`,
+          html: notificationEmail.html,
+          text: notificationEmail.text,
           tags: [
             { name: "category", value: "rsvp-notification" },
             { name: "attending", value: submission.attending ? "yes" : "no" },
