@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { Mail, X } from "lucide-react";
 import { SongRecommendations } from "./SongRecommendations";
 import type { Song } from "@/lib/songs";
 
@@ -13,6 +14,27 @@ type Guest = {
 };
 
 const COURSES = ["Carne", "Pescado", "Vegano"] as const;
+const CONFETTI_COLORS = ["#30483b", "#75806d", "#b4955f", "#d9c8a8", "#f7f3eb"];
+
+async function celebrateAttendance() {
+  const { default: confetti } = await import("canvas-confetti");
+
+  await confetti({
+    particleCount: 72,
+    angle: 90,
+    spread: 72,
+    startVelocity: 42,
+    decay: 0.91,
+    gravity: 0.95,
+    ticks: 165,
+    origin: { x: 0.5, y: 0.72 },
+    colors: CONFETTI_COLORS,
+    shapes: ["circle", "square", "circle"],
+    scalar: 0.88,
+    zIndex: 100,
+    disableForReducedMotion: true,
+  });
+}
 
 function CourseSelector({
   value,
@@ -46,6 +68,8 @@ function CourseSelector({
 export function RsvpForm() {
   const nextGuestId = useRef(1);
   const lastSubmission = useRef<{ fingerprint: string; id: string } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const confirmationDialog = useRef<HTMLDialogElement>(null);
   const [attending, setAttending] = useState(true);
   const [mainCourse, setMainCourse] = useState<MainCourse>("Carne");
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -71,9 +95,18 @@ export function RsvpForm() {
     setGuests((current) => current.filter((guest) => guest.id !== id));
   };
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const requestConfirmation = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    if (submitState === "sending" || confirmationDialog.current?.open) return;
+
+    confirmationDialog.current?.showModal();
+  };
+
+  const sendConfirmation = async () => {
+    const form = formRef.current;
+    if (!form || submitState === "sending") return;
+
+    const data = new FormData(form);
     const name = String(data.get("name") || "").trim();
     const email = String(data.get("email") || "").trim();
     const payload = {
@@ -126,7 +159,12 @@ export function RsvpForm() {
       if (!response.ok) throw new Error(errorMessage);
 
       setSubmitState("success");
-      setStatus("Confirmación enviada. Te hemos mandado una copia por correo.");
+      setStatus(
+        "Confirmación enviada. Te hemos mandado una copia por correo. Si no la encuentras, revisa la carpeta de correo no deseado o spam.",
+      );
+      if (payload.attending) {
+        void celebrateAttendance().catch(() => undefined);
+      }
     } catch (error) {
       setSubmitState("error");
       setStatus(timedOut
@@ -140,7 +178,12 @@ export function RsvpForm() {
   };
 
   return (
-    <form className="rsvp-form" onSubmit={submit} aria-busy={submitState === "sending"}>
+    <form
+      ref={formRef}
+      className="rsvp-form"
+      onSubmit={requestConfirmation}
+      aria-busy={submitState === "sending"}
+    >
       <input
         name="website"
         type="text"
@@ -306,6 +349,60 @@ export function RsvpForm() {
           </p>
         )}
       </div>
+
+      <dialog
+        ref={confirmationDialog}
+        className="rsvp-confirmation"
+        aria-labelledby="rsvp-confirmation-title"
+        aria-describedby="rsvp-confirmation-description"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) event.currentTarget.close();
+        }}
+      >
+        <div className="rsvp-confirmation__card">
+          <button
+            className="rsvp-confirmation__close"
+            type="button"
+            aria-label="Cerrar confirmación"
+            onClick={() => confirmationDialog.current?.close()}
+          >
+            <X aria-hidden="true" />
+          </button>
+          <div className="rsvp-confirmation__mark" aria-hidden="true">
+            <Mail />
+          </div>
+          <p className="rsvp-confirmation__eyebrow">Antes de enviar</p>
+          <h2 id="rsvp-confirmation-title">
+            {attending
+              ? "¿Confirmas tu asistencia?"
+              : "¿Confirmas que no podrás asistir?"}
+          </h2>
+          <p id="rsvp-confirmation-description">
+            {attending
+              ? "Al confirmar, enviaremos tu respuesta a Inma y Pascual y recibirás una copia por correo."
+              : "Al confirmar, enviaremos a Inma y Pascual que no podrás asistir y recibirás una copia por correo."}
+          </p>
+          <div className="rsvp-confirmation__actions">
+            <button
+              className="button button--outline"
+              type="button"
+              onClick={() => confirmationDialog.current?.close()}
+            >
+              Cancelar
+            </button>
+            <button
+              className="button"
+              type="button"
+              onClick={() => {
+                confirmationDialog.current?.close();
+                void sendConfirmation();
+              }}
+            >
+              Sí, confirmar
+            </button>
+          </div>
+        </div>
+      </dialog>
     </form>
   );
 }

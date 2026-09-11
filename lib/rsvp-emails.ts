@@ -80,7 +80,7 @@ function songText(songs: Song[]) {
 
 function eventDetails() {
   return `<tr>
-    <td class="email-padding" style="padding:28px 48px;background:${COLORS.ivory};border-bottom:1px solid ${COLORS.line};">
+    <td class="email-padding email-event" bgcolor="${COLORS.ivory}" style="padding:28px 48px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border-bottom:1px solid ${COLORS.line};">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr>
           <td class="event-cell" width="31%" valign="top" style="width:31%;padding-right:18px;">
@@ -124,8 +124,23 @@ function emailShell({
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="x-apple-disable-message-reformatting">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <title>${escapeHtml(title)}</title>
     <style>
+      :root {
+        color-scheme: only light;
+        supported-color-schemes: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        .email-body,
+        .email-canvas { background-color: ${COLORS.ivoryDeep} !important; }
+        .email-shell,
+        .email-content { background-color: ${COLORS.paper} !important; color: ${COLORS.ink} !important; }
+        .email-header { background-color: ${COLORS.olive} !important; color: ${COLORS.paper} !important; }
+        .email-event,
+        .email-footer { background-color: ${COLORS.ivory} !important; color: ${COLORS.ink} !important; }
+      }
       @media only screen and (max-width: 640px) {
         .email-shell { width: 100% !important; }
         .email-padding { padding-left: 24px !important; padding-right: 24px !important; }
@@ -135,14 +150,14 @@ function emailShell({
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;background:${COLORS.ivoryDeep};color:${COLORS.ink};font-family:Avenir,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <body class="email-body" bgcolor="${COLORS.ivoryDeep}" style="margin:0;padding:0;background-color:${COLORS.ivoryDeep};background-image:linear-gradient(${COLORS.ivoryDeep},${COLORS.ivoryDeep});color:${COLORS.ink};font-family:Avenir,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(preheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:${COLORS.ivoryDeep};">
+    <table role="presentation" class="email-canvas" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.ivoryDeep}" style="width:100%;background-color:${COLORS.ivoryDeep};background-image:linear-gradient(${COLORS.ivoryDeep},${COLORS.ivoryDeep});">
       <tr>
         <td align="center" style="padding:32px 12px;">
-          <table role="presentation" class="email-shell" width="640" cellspacing="0" cellpadding="0" border="0" style="width:640px;max-width:640px;background:${COLORS.paper};border:1px solid ${COLORS.line};">
+          <table role="presentation" class="email-shell" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.paper}" style="width:640px;max-width:640px;background-color:${COLORS.paper};background-image:linear-gradient(${COLORS.paper},${COLORS.paper});border:1px solid ${COLORS.line};">
             <tr>
-              <td class="email-padding" style="padding:40px 48px 38px;background:${COLORS.olive};color:${COLORS.paper};">
+              <td class="email-padding email-header" bgcolor="${COLORS.olive}" style="padding:40px 48px 38px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                   <tr>
                     <td style="font-family:Georgia,'Times New Roman',serif;font-size:29px;line-height:1;color:${COLORS.paper};">I <span style="color:${COLORS.goldSoft};font-style:italic;">&amp;</span> P</td>
@@ -157,12 +172,12 @@ function emailShell({
             </tr>
             ${showEventDetails ? eventDetails() : ""}
             <tr>
-              <td class="email-padding" style="padding:38px 48px 46px;">
+              <td class="email-padding email-content" bgcolor="${COLORS.paper}" style="padding:38px 48px 46px;background-color:${COLORS.paper};background-image:linear-gradient(${COLORS.paper},${COLORS.paper});color:${COLORS.ink};">
                 ${body}
               </td>
             </tr>
             <tr>
-              <td class="email-padding" align="center" style="padding:30px 48px;background:${COLORS.ivory};border-top:1px solid ${COLORS.line};">
+              <td class="email-padding email-footer" align="center" bgcolor="${COLORS.ivory}" style="padding:30px 48px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border-top:1px solid ${COLORS.line};">
                 <p style="margin:0;color:${COLORS.olive};font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.3;font-style:italic;">Inma &amp; Pascual</p>
                 <p style="margin:9px 0 0;color:${COLORS.taupe};font-size:10px;line-height:1.5;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;">${escapeHtml(footer)}</p>
               </td>
@@ -180,7 +195,7 @@ function sectionTitle(title: string) {
 }
 
 function personBlock(label: string, name: string, course: string | null, specialNeeds: string) {
-  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:0 0 10px;background:${COLORS.ivory};border:1px solid ${COLORS.line};">
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.ivory}" style="width:100%;margin:0 0 10px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
     <tr>
       <td valign="top" style="padding:19px 20px;">
         <p style="margin:0 0 4px;color:${COLORS.gold};font-size:9px;line-height:1.4;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">${escapeHtml(label)}</p>
@@ -213,7 +228,7 @@ function songsBlock(songs: Song[]) {
 }
 
 function messageBlock(message: string) {
-  return `<div style="padding:20px 22px;background:${COLORS.ivory};border:1px solid ${COLORS.line};">
+  return `<div style="padding:20px 22px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
     <p style="margin:0;color:${message ? COLORS.ink : COLORS.taupe};font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.75;font-style:${message ? "italic" : "normal"};">${message ? `“${withLineBreaks(message)}”` : "Sin mensaje adicional."}</p>
   </div>`;
 }
@@ -224,7 +239,7 @@ function spacer(size = 32) {
 
 function attendeesBlock(submission: RsvpEmailSubmission) {
   if (!submission.attending) {
-    return `<div style="padding:19px 20px;background:${COLORS.ivory};border:1px solid ${COLORS.line};">
+    return `<div style="padding:19px 20px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
       <p style="margin:0;color:${COLORS.taupe};font-size:14px;line-height:1.65;">${escapeHtml(submission.name)} ha indicado que no podrá acompañarnos.</p>
     </div>`;
   }
@@ -242,7 +257,7 @@ export function buildConfirmationEmail(submission: RsvpEmailSubmission): EmailDo
   const body = `
     ${sectionTitle("Tu confirmación")}
     <p style="margin:0 0 18px;color:${COLORS.taupe};font-size:14px;line-height:1.7;">Hemos guardado estos datos. Si necesitas modificar algo, responde directamente a este correo.</p>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-bottom:22px;background:${COLORS.olive};color:${COLORS.paper};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
       <tr>
         <td style="padding:18px 20px;">
           <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Asistencia</p>
@@ -296,7 +311,7 @@ export function buildNotificationEmail(submission: RsvpEmailSubmission): EmailDo
   const attendeeCount = submission.attending ? submission.guests.length + 1 : 0;
   const body = `
     ${sectionTitle("Datos de contacto")}
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:${COLORS.ivory};border:1px solid ${COLORS.line};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.ivory}" style="width:100%;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
       <tr>
         <td style="padding:18px 20px;border-bottom:1px solid ${COLORS.line};">
           <p style="margin:0 0 4px;color:${COLORS.gold};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Nombre</p>
@@ -313,7 +328,7 @@ export function buildNotificationEmail(submission: RsvpEmailSubmission): EmailDo
     <p style="margin:13px 0 0;color:${COLORS.taupe};font-size:12px;line-height:1.6;">Podéis responder a este correo para escribir directamente a ${escapeHtml(firstName(submission.name))}.</p>
     ${spacer()}
     ${sectionTitle("Resumen de asistencia")}
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-bottom:22px;background:${COLORS.olive};color:${COLORS.paper};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
       <tr>
         <td style="padding:18px 20px;">
           <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Respuesta</p>
