@@ -10,6 +10,7 @@ type Guest = {
   id: number;
   name: string;
   mainCourse: MainCourse;
+  allergies: string;
   specialNeeds: string;
 };
 
@@ -81,7 +82,7 @@ export function RsvpForm() {
     const id = nextGuestId.current++;
     setGuests((current) => [
       ...current,
-      { id, name: "", mainCourse: "Carne", specialNeeds: "" },
+      { id, name: "", mainCourse: "Carne", allergies: "", specialNeeds: "" },
     ]);
   };
 
@@ -114,14 +115,14 @@ export function RsvpForm() {
       email,
       attending,
       mainCourse: attending ? mainCourse : null,
+      allergies: attending ? String(data.get("allergies") || "").trim() : "",
       specialNeeds: attending ? String(data.get("specialNeeds") || "").trim() : "",
-      guests: attending
-        ? guests.map(({ name: guestName, mainCourse: guestCourse, specialNeeds }) => ({
-            name: guestName.trim(),
-            mainCourse: guestCourse,
-            specialNeeds: specialNeeds.trim(),
-          }))
-        : [],
+      guests: guests.map(({ name: guestName, mainCourse: guestCourse, allergies, specialNeeds }) => ({
+        name: guestName.trim(),
+        mainCourse: attending ? guestCourse : null,
+        allergies: attending ? allergies.trim() : "",
+        specialNeeds: attending ? specialNeeds.trim() : "",
+      })),
       songs,
       message: String(data.get("message") || "").trim(),
       website: String(data.get("website") || ""),
@@ -158,6 +159,13 @@ export function RsvpForm() {
         : "No hemos podido enviar la confirmación. Inténtalo de nuevo.";
       if (!response.ok) throw new Error(errorMessage);
 
+      form.reset();
+      nextGuestId.current = 1;
+      lastSubmission.current = null;
+      setAttending(true);
+      setMainCourse("Carne");
+      setGuests([]);
+      setSongs([]);
       setSubmitState("success");
       setStatus(
         "Confirmación enviada. Te hemos mandado una copia por correo. Si no la encuentras, revisa la carpeta de correo no deseado o spam.",
@@ -248,80 +256,117 @@ export function RsvpForm() {
             onChange={setMainCourse}
           />
 
-          <label>
-            <span>Alergias, intolerancias u otras necesidades especiales</span>
-            <input
-              name="specialNeeds"
-              type="text"
-              placeholder="Ej. intolerancia a la lactosa"
-              maxLength={300}
-            />
-          </label>
+          <div className="form-grid">
+            <label>
+              <span>Alergias e intolerancias</span>
+              <input
+                name="allergies"
+                type="text"
+                placeholder="Ej. intolerancia a la lactosa"
+                maxLength={300}
+              />
+            </label>
+            <label>
+              <span>Necesidades especiales</span>
+              <input
+                name="specialNeeds"
+                type="text"
+                placeholder="Ej. embarazo u otra necesidad especial"
+                maxLength={300}
+              />
+            </label>
+          </div>
 
-          <section className="guest-section" aria-labelledby="guest-title">
-            <div className="guest-section__heading">
-              <div>
-                <h3 id="guest-title" className="form-section-title">Acompañantes</h3>
-                <p>Añade a cada persona y elige su plato principal.</p>
-              </div>
-              <button className="add-guest-button" type="button" onClick={addGuest}>
-                <span aria-hidden="true">+</span> Añadir persona
-              </button>
-            </div>
+        </div>
+      )}
 
-            {guests.length === 0 ? (
-              <p className="guest-section__empty">Todavía no has añadido acompañantes.</p>
-            ) : (
-              <div className="guest-list">
-                {guests.map((guest, index) => (
-                  <div className="guest-card" key={guest.id}>
-                    <div className="guest-card__topline">
-                      <strong>Acompañante {index + 1}</strong>
-                      <button
-                        type="button"
-                        onClick={() => removeGuest(guest.id)}
-                        aria-label={`Eliminar acompañante ${index + 1}`}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                    <label>
-                      <span>Nombre y apellidos</span>
-                      <input
-                        type="text"
-                        value={guest.name}
-                        placeholder="Ej. Álex García López"
-                        minLength={2}
-                        maxLength={80}
-                        required
-                        onChange={(event) => updateGuest(guest.id, { name: event.target.value })}
-                      />
-                    </label>
+      <section className="guest-section" aria-labelledby="guest-title">
+        <div className="guest-section__heading">
+          <div>
+            <h3 id="guest-title" className="form-section-title">Acompañantes</h3>
+            <p>
+              {attending
+                ? "Añade a cada persona y elige su plato principal."
+                : "Añade a las demás personas del grupo que tampoco podrán asistir."}
+            </p>
+          </div>
+          <button className="add-guest-button" type="button" onClick={addGuest}>
+            <span aria-hidden="true">+</span> Añadir persona
+          </button>
+        </div>
+
+        {guests.length === 0 ? (
+          <p className="guest-section__empty">
+            {attending
+              ? "Todavía no has añadido acompañantes."
+              : "No has añadido a más personas del grupo."}
+          </p>
+        ) : (
+          <div className="guest-list">
+            {guests.map((guest, index) => (
+              <div className="guest-card" key={guest.id}>
+                <div className="guest-card__topline">
+                  <strong>Acompañante {index + 1}</strong>
+                  <button
+                    type="button"
+                    onClick={() => removeGuest(guest.id)}
+                    aria-label={`Eliminar acompañante ${index + 1}`}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+                <label>
+                  <span>Nombre y apellidos</span>
+                  <input
+                    type="text"
+                    value={guest.name}
+                    placeholder="Ej. Álex García López"
+                    minLength={2}
+                    maxLength={80}
+                    required
+                    onChange={(event) => updateGuest(guest.id, { name: event.target.value })}
+                  />
+                </label>
+                {attending && (
+                  <>
                     <CourseSelector
                       label="Plato principal"
                       value={guest.mainCourse}
                       onChange={(course) => updateGuest(guest.id, { mainCourse: course })}
                     />
-                    <label>
-                      <span>Alergias, intolerancias u otras necesidades especiales</span>
-                      <input
-                        type="text"
-                        value={guest.specialNeeds}
-                        placeholder="Ej. menú sin gluten"
-                        maxLength={300}
-                        onChange={(event) =>
-                          updateGuest(guest.id, { specialNeeds: event.target.value })
-                        }
-                      />
-                    </label>
-                  </div>
-                ))}
+                    <div className="form-grid">
+                      <label>
+                        <span>Alergias e intolerancias</span>
+                        <input
+                          type="text"
+                          value={guest.allergies}
+                          placeholder="Ej. alergia a los frutos secos"
+                          maxLength={300}
+                          onChange={(event) =>
+                            updateGuest(guest.id, { allergies: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Necesidades especiales</span>
+                        <input
+                          type="text"
+                          value={guest.specialNeeds}
+                          placeholder="Ej. embarazo u otra necesidad especial"
+                          maxLength={300}
+                          onChange={(event) =>
+                            updateGuest(guest.id, { specialNeeds: event.target.value })
+                          }
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-          </section>
-
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
 
       <SongRecommendations songs={songs} onChange={setSongs} />
 
@@ -375,12 +420,16 @@ export function RsvpForm() {
           <h2 id="rsvp-confirmation-title">
             {attending
               ? "¿Confirmas tu asistencia?"
-              : "¿Confirmas que no podrás asistir?"}
+              : guests.length
+                ? "¿Confirmas que no podréis asistir?"
+                : "¿Confirmas que no podrás asistir?"}
           </h2>
           <p id="rsvp-confirmation-description">
             {attending
               ? "Al confirmar, enviaremos tu respuesta a Inma y Pascual y recibirás una copia por correo."
-              : "Al confirmar, enviaremos a Inma y Pascual que no podrás asistir y recibirás una copia por correo."}
+              : guests.length
+                ? "Al confirmar, enviaremos a Inma y Pascual que ninguna de las personas incluidas podrá asistir y recibirás una copia por correo."
+                : "Al confirmar, enviaremos a Inma y Pascual que no podrás asistir y recibirás una copia por correo."}
           </p>
           <div className="rsvp-confirmation__actions">
             <button

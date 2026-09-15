@@ -2,7 +2,8 @@ import type { Song } from "./songs";
 
 export type RsvpEmailGuest = {
   name: string;
-  mainCourse: string;
+  mainCourse: string | null;
+  allergies: string;
   specialNeeds: string;
 };
 
@@ -11,6 +12,7 @@ export type RsvpEmailSubmission = {
   email: string;
   attending: boolean;
   mainCourse: string | null;
+  allergies: string;
   specialNeeds: string;
   guests: RsvpEmailGuest[];
   songs: Song[];
@@ -54,17 +56,25 @@ function firstName(name: string) {
 
 function attendanceText(submission: RsvpEmailSubmission) {
   if (!submission.attending) {
-    return ["Asistencia: No podrá asistir", "Número de asistentes: 0"];
+    const people = [submission.name, ...submission.guests.map((guest) => guest.name)];
+    return [
+      `Asistencia: ${people.length > 1 ? "No asistirán" : "No podrá asistir"}`,
+      "Número de asistentes: 0",
+      `Personas incluidas en la respuesta: ${people.length}`,
+      ...people.map((name, index) => `${index + 1}. ${name}`),
+    ];
   }
 
   return [
     "Asistencia: Sí, asistirá",
     `Número de asistentes: ${submission.guests.length + 1}`,
     `Plato principal de ${submission.name}: ${submission.mainCourse}`,
+    `Alergias e intolerancias de ${submission.name}: ${submission.allergies || "Ninguna"}`,
     `Necesidades especiales de ${submission.name}: ${submission.specialNeeds || "Ninguna"}`,
     ...submission.guests.flatMap((guest, index) => [
       `Acompañante ${index + 1}: ${guest.name}`,
       `Plato principal: ${guest.mainCourse}`,
+      `Alergias e intolerancias: ${guest.allergies || "Ninguna"}`,
       `Necesidades especiales: ${guest.specialNeeds || "Ninguna"}`,
     ]),
   ];
@@ -72,10 +82,10 @@ function attendanceText(submission: RsvpEmailSubmission) {
 
 function songText(songs: Song[]) {
   return songs.length
-    ? ["Canciones recomendadas:", ...songs.map((song, index) =>
+    ? ["Canciones seleccionadas:", ...songs.map((song, index) =>
         `${index + 1}. ${song.title} — ${song.artist}${song.album ? ` (${song.album})` : ""}`,
       )]
-    : ["Canciones recomendadas: Ninguna"];
+    : ["Canciones seleccionadas: Ninguna"];
 }
 
 function eventDetails() {
@@ -194,7 +204,13 @@ function sectionTitle(title: string) {
   return `<h2 style="margin:0 0 15px;color:${COLORS.olive};font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:400;">${escapeHtml(title)}</h2>`;
 }
 
-function personBlock(label: string, name: string, course: string | null, specialNeeds: string) {
+function personBlock(
+  label: string,
+  name: string,
+  course: string | null,
+  allergies: string,
+  specialNeeds: string,
+) {
   return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.ivory}" style="width:100%;margin:0 0 10px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
     <tr>
       <td valign="top" style="padding:19px 20px;">
@@ -204,6 +220,8 @@ function personBlock(label: string, name: string, course: string | null, special
       <td class="person-details" width="48%" valign="top" style="width:48%;padding:19px 20px 19px 0;">
         <p style="margin:0 0 4px;color:${COLORS.taupe};font-size:10px;line-height:1.4;letter-spacing:.8px;text-transform:uppercase;">Plato principal</p>
         <p style="margin:0 0 10px;color:${COLORS.ink};font-size:14px;line-height:1.45;">${escapeHtml(course || "—")}</p>
+        <p style="margin:0 0 4px;color:${COLORS.taupe};font-size:10px;line-height:1.4;letter-spacing:.8px;text-transform:uppercase;">Alergias e intolerancias</p>
+        <p style="margin:0 0 10px;color:${COLORS.ink};font-size:14px;line-height:1.5;">${escapeHtml(allergies || "Ninguna")}</p>
         <p style="margin:0 0 4px;color:${COLORS.taupe};font-size:10px;line-height:1.4;letter-spacing:.8px;text-transform:uppercase;">Necesidades especiales</p>
         <p style="margin:0;color:${COLORS.ink};font-size:14px;line-height:1.5;">${escapeHtml(specialNeeds || "Ninguna")}</p>
       </td>
@@ -239,39 +257,56 @@ function spacer(size = 32) {
 
 function attendeesBlock(submission: RsvpEmailSubmission) {
   if (!submission.attending) {
+    const people = [submission.name, ...submission.guests.map((guest) => guest.name)];
     return `<div style="padding:19px 20px;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
-      <p style="margin:0;color:${COLORS.taupe};font-size:14px;line-height:1.65;">${escapeHtml(submission.name)} ha indicado que no podrá acompañarnos.</p>
+      <p style="margin:0 0 13px;color:${COLORS.taupe};font-size:14px;line-height:1.65;">${people.length > 1 ? `Estas ${people.length} personas han indicado que no podrán asistir:` : `${escapeHtml(submission.name)} ha indicado que no podrá asistir.`}</p>
+      ${people.length > 1 ? people.map((name, index) => `<p style="margin:${index ? "7px" : "0"} 0 0;color:${COLORS.ink};font-size:15px;line-height:1.5;font-weight:600;">${escapeHtml(name)}</p>`).join("") : ""}
     </div>`;
   }
 
   return [
-    personBlock("Persona que confirma", submission.name, submission.mainCourse, submission.specialNeeds),
+    personBlock(
+      "Persona que confirma",
+      submission.name,
+      submission.mainCourse,
+      submission.allergies,
+      submission.specialNeeds,
+    ),
     ...submission.guests.map((guest, index) =>
-      personBlock(`Acompañante ${index + 1}`, guest.name, guest.mainCourse, guest.specialNeeds),
+      personBlock(
+        `Acompañante ${index + 1}`,
+        guest.name,
+        guest.mainCourse,
+        guest.allergies,
+        guest.specialNeeds,
+      ),
     ),
   ].join("");
 }
 
 export function buildConfirmationEmail(submission: RsvpEmailSubmission): EmailDocument {
   const attendeeCount = submission.attending ? submission.guests.length + 1 : 0;
-  const body = `
-    ${sectionTitle("Tu confirmación")}
-    <p style="margin:0 0 18px;color:${COLORS.taupe};font-size:14px;line-height:1.7;">Hemos guardado estos datos. Si necesitas modificar algo, responde directamente a este correo.</p>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
+  const attendanceSummary = submission.attending
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
       <tr>
         <td style="padding:18px 20px;">
           <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Asistencia</p>
-          <p style="margin:0;color:${COLORS.paper};font-size:15px;line-height:1.45;font-weight:600;">${submission.attending ? "Sí, allí estaré" : "No podré ir"}</p>
+          <p style="margin:0;color:${COLORS.paper};font-size:15px;line-height:1.45;font-weight:600;">Sí, allí estaré</p>
         </td>
         <td align="right" style="padding:18px 20px;">
           <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Asistentes</p>
           <p style="margin:0;color:${COLORS.paper};font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.2;">${attendeeCount}</p>
         </td>
       </tr>
-    </table>
+    </table>`
+    : "";
+  const body = `
+    ${sectionTitle("Tu confirmación")}
+    <p style="margin:0 0 18px;color:${COLORS.taupe};font-size:14px;line-height:1.7;">Hemos guardado estos datos. Si necesitas modificar algo, ponte en contacto directamente con los novios.</p>
+    ${attendanceSummary}
     ${attendeesBlock(submission)}
     ${spacer()}
-    ${sectionTitle("Vuestras canciones")}
+    ${sectionTitle("Canciones seleccionadas")}
     ${songsBlock(submission.songs)}
     ${spacer()}
     ${sectionTitle("Tu mensaje")}
@@ -288,7 +323,7 @@ export function buildConfirmationEmail(submission: RsvpEmailSubmission): EmailDo
     "",
     `Mensaje: ${submission.message || "Sin mensaje"}`,
     "",
-    "Si necesitas modificar algo, responde a este correo.",
+    "Si necesitas modificar algo, ponte en contacto directamente con los novios.",
     "",
     "Muchas gracias por responder.",
     "Inma y Pascual",
@@ -309,6 +344,21 @@ export function buildConfirmationEmail(submission: RsvpEmailSubmission): EmailDo
 
 export function buildNotificationEmail(submission: RsvpEmailSubmission): EmailDocument {
   const attendeeCount = submission.attending ? submission.guests.length + 1 : 0;
+  const attendanceSummary = submission.attending
+    ? `${sectionTitle("Resumen de asistencia")}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
+      <tr>
+        <td style="padding:18px 20px;">
+          <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Respuesta</p>
+          <p style="margin:0;color:${COLORS.paper};font-size:15px;line-height:1.45;font-weight:600;">Asistirá</p>
+        </td>
+        <td align="right" style="padding:18px 20px;">
+          <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Total</p>
+          <p style="margin:0;color:${COLORS.paper};font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.2;">${attendeeCount}</p>
+        </td>
+      </tr>
+    </table>`
+    : "";
   const body = `
     ${sectionTitle("Datos de contacto")}
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.ivory}" style="width:100%;background-color:${COLORS.ivory};background-image:linear-gradient(${COLORS.ivory},${COLORS.ivory});border:1px solid ${COLORS.line};">
@@ -327,22 +377,10 @@ export function buildNotificationEmail(submission: RsvpEmailSubmission): EmailDo
     </table>
     <p style="margin:13px 0 0;color:${COLORS.taupe};font-size:12px;line-height:1.6;">Podéis responder a este correo para escribir directamente a ${escapeHtml(firstName(submission.name))}.</p>
     ${spacer()}
-    ${sectionTitle("Resumen de asistencia")}
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${COLORS.olive}" style="width:100%;margin-bottom:22px;background-color:${COLORS.olive};background-image:linear-gradient(${COLORS.olive},${COLORS.olive});color:${COLORS.paper};">
-      <tr>
-        <td style="padding:18px 20px;">
-          <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Respuesta</p>
-          <p style="margin:0;color:${COLORS.paper};font-size:15px;line-height:1.45;font-weight:600;">${submission.attending ? "Asistirá" : "No asistirá"}</p>
-        </td>
-        <td align="right" style="padding:18px 20px;">
-          <p style="margin:0 0 4px;color:${COLORS.goldSoft};font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Total</p>
-          <p style="margin:0;color:${COLORS.paper};font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.2;">${attendeeCount}</p>
-        </td>
-      </tr>
-    </table>
+    ${attendanceSummary}
     ${attendeesBlock(submission)}
     ${spacer()}
-    ${sectionTitle("Canciones recomendadas")}
+    ${sectionTitle("Canciones seleccionadas")}
     ${songsBlock(submission.songs)}
     ${spacer()}
     ${sectionTitle("Mensaje para los novios")}

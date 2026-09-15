@@ -2,7 +2,6 @@
 
 import {
   Map,
-  MapControls,
   MapMarker,
   MarkerContent,
   MarkerLabel,
@@ -64,7 +63,13 @@ function IvoryMapTheme() {
 export function VenueMap() {
   return (
     <div className="venue-map">
-      <Map center={VENUE_CENTER} zoom={14} theme="light">
+      <Map
+        center={VENUE_CENTER}
+        zoom={14}
+        theme="light"
+        interactive={false}
+        attributionControl={false}
+      >
         <IvoryMapTheme />
         <MapMarker
           longitude={VENUE_CENTER[0]}
@@ -78,8 +83,17 @@ export function VenueMap() {
             </MapLink>
           </MarkerContent>
         </MapMarker>
-        <MapControls position="top-right" />
       </Map>
+      <p className="venue-map__attribution">
+        ©{" "}
+        <a href="https://carto.com/about-carto/" target="_blank" rel="noreferrer">
+          CARTO
+        </a>
+        {", © "}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+          OpenStreetMap
+        </a>
+      </p>
     </div>
   );
 }

@@ -39,14 +39,24 @@ function multiline(value: unknown, maxLength: number) {
   return value.trim().replace(/\r\n?/g, "\n");
 }
 
-function parseGuest(value: unknown): RsvpEmailGuest | null {
+function parseGuest(value: unknown, attending: boolean): RsvpEmailGuest | null {
   if (!isRecord(value)) return null;
   const name = singleLine(value.name, 80);
+  if (!name || name.length < 2) return null;
+
+  if (!attending) {
+    return { name, mainCourse: null, allergies: "", specialNeeds: "" };
+  }
+
+  const allergies = multiline(value.allergies, 300);
   const specialNeeds = multiline(value.specialNeeds, 300);
-  if (!name || name.length < 2 || !COURSES.has(String(value.mainCourse)) || specialNeeds === null) {
+  if (
+    !COURSES.has(String(value.mainCourse)) ||
+    allergies === null || specialNeeds === null
+  ) {
     return null;
   }
-  return { name, mainCourse: String(value.mainCourse), specialNeeds };
+  return { name, mainCourse: String(value.mainCourse), allergies, specialNeeds };
 }
 
 function parseSong(value: unknown): Song | null {
@@ -64,10 +74,11 @@ function parseSubmission(value: unknown): RsvpSubmission | null {
   const submissionId = singleLine(value.submissionId, 80);
   const name = singleLine(value.name, 80);
   const email = singleLine(value.email, 120);
+  const allergies = multiline(value.allergies, 300);
   const specialNeeds = multiline(value.specialNeeds, 300);
   const message = multiline(value.message, 600);
   const guests = Array.isArray(value.guests) && value.guests.length <= 20
-    ? value.guests.map(parseGuest)
+    ? value.guests.map((guest) => parseGuest(guest, value.attending === true))
     : null;
   const songs = Array.isArray(value.songs) && value.songs.length <= 20
     ? value.songs.map(parseSong)
@@ -78,7 +89,7 @@ function parseSubmission(value: unknown): RsvpSubmission | null {
     !name || name.length < 2 ||
     !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     typeof value.attending !== "boolean" ||
-    specialNeeds === null || message === null ||
+    allergies === null || specialNeeds === null || message === null ||
     !guests || guests.some((guest) => guest === null) ||
     !songs || songs.some((song) => song === null)
   ) {
@@ -96,8 +107,9 @@ function parseSubmission(value: unknown): RsvpSubmission | null {
     email,
     attending: value.attending,
     mainCourse,
+    allergies: value.attending ? allergies : "",
     specialNeeds: value.attending ? specialNeeds : "",
-    guests: value.attending ? guests as RsvpEmailGuest[] : [],
+    guests: guests as RsvpEmailGuest[],
     songs: songs as Song[],
     message,
   };
