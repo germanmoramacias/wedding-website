@@ -5,7 +5,7 @@ import { Mail, X } from "lucide-react";
 import { SongRecommendations } from "./SongRecommendations";
 import type { Song } from "@/lib/songs";
 
-type MainCourse = "Carne" | "Pescado" | "Vegano";
+type MainCourse = "Carne" | "Pescado" | "Vegetariano" | "Vegano";
 type Guest = {
   id: number;
   name: string;
@@ -14,7 +14,7 @@ type Guest = {
   specialNeeds: string;
 };
 
-const COURSES = ["Carne", "Pescado", "Vegano"] as const;
+const COURSES = ["Carne", "Pescado", "Vegetariano", "Vegano"] as const;
 const CONFETTI_COLORS = ["#30483b", "#75806d", "#b4955f", "#d9c8a8", "#f7f3eb"];
 
 async function celebrateAttendance() {

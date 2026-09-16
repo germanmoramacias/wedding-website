@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 
 const FROM_ADDRESS = "confirmacion@mail.ceremoniainmaypascual.com";
 const MAX_BODY_SIZE = 32_000;
-const COURSES = new Set(["Carne", "Pescado", "Vegano"]);
+const COURSES = new Set(["Carne", "Pescado", "Vegetariano", "Vegano"]);
 
 type RsvpSubmission = RsvpEmailSubmission & {
   submissionId: string;
